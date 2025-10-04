@@ -1,0 +1,315 @@
+// This file is conceptually new, but will be bundled with App.tsx
+// to adhere to the single-file update constraint.
+
+export const translations = {
+  it: {
+    // Common terms
+    common: {
+      cancel: 'Annulla',
+      delete: 'Elimina',
+      save: 'Salva',
+      edit: 'Modifica',
+      saveChanges: 'Salva Modifiche',
+    },
+    // Sidebar
+    sidebar: {
+      dashboard: 'Dashboard',
+      calendario: 'Calendario',
+      details: 'Dettagli Materia',
+      dispense: 'Dispense Materia',
+      appunti: 'Appunti',
+      esercitazioni: 'Esercitazioni',
+      chat: 'Lezione con Tutor',
+      lessonDiary: 'Diario Lezioni',
+      simulations: 'Simulazioni Esami',
+      impostazioni: 'Impostazioni',
+      databaseApp: 'Database Materia',
+      selectedSubject: 'Materia Selezionata',
+    },
+    // Dispense View
+    dispense: {
+      description: 'Carica e gestisci i tuoi PDF. L\'AI li analizzerà per creare esercitazioni e lezioni su misura per te.',
+      uploadButton: 'Carica Nuova Dispensa',
+      savedTitle: 'Dispense Salvate',
+      searchPlaceholder: 'Cerca per nome o argomento...',
+      sortLabel: 'Ordina dispense',
+      sort: {
+        recent: 'Più recenti',
+        oldest: 'Meno recenti',
+        name_asc: 'Nome (A-Z)',
+        name_desc: 'Nome (Z-A)',
+        completion_desc: 'Completamento (Alto > Basso)',
+        completion_asc: 'Completamento (Basso > Alto)',
+        comprehension_desc: 'Comprensione (Alta > Bassa)',
+        comprehension_asc: 'Comprensione (Bassa > Alta)',
+      },
+      filterByTopic: 'Filtra per argomento',
+      removeFilters: 'Rimuovi filtri',
+      noDispense: 'Nessuna dispensa salvata per questa materia. Clicca sopra per caricarne una!',
+      noMatch: 'Nessuna dispensa corrisponde ai filtri di ricerca.',
+    },
+    // Details View
+    details: {
+      welcome: 'Benvenuto in UniTutorAI',
+      studying: 'Stai studiando',
+      summary: 'Riepilogo Materia',
+      edit: 'Modifica Dati',
+      cfu: 'CFU',
+      simulations: 'Simulazioni',
+      avgGrade: 'Voto Medio',
+      professors: 'Docenti',
+      noProfessor: 'Nessun dato del docente inserito.',
+      profName: 'Nome',
+      profEmail: 'Email',
+      profOffice: 'Ricevimento',
+      schedule: 'Orario Lezioni',
+      period: 'Periodo',
+      notSet: 'Non impostato',
+      noSchedule: 'Nessun orario impostato.',
+      classroom: 'Aula',
+      prof: 'Docente',
+      examDates: "Prossime Date d'Esame",
+      nextExamIn: 'Prossimo appello tra:',
+      noExamDates: "Nessuna data d'esame impostata.",
+      footer: "Seleziona un'opzione dalla barra laterale per esplorare altre funzionalità.",
+      loading: 'Caricamento...',
+      notFound: "Dettagli della materia non trovati.",
+    },
+    // Welcome Modal
+    welcome: {
+        title: 'Benvenuto in UniTutorAI!',
+        description: 'Questa è la tua nuova piattaforma di studio intelligente. UniTutorAI ti aiuterà a organizzare il materiale, generare esercitazioni su misura e prepararti al meglio per gli esami.',
+        howToStart: '🚀 Come iniziare:',
+        step1: 'Vai alla Dashboard.',
+        step2: 'Clicca sul pulsante "Gestisci Materie".',
+        step3: 'Aggiungi la tua prima materia per sbloccare tutte le funzionalità!',
+        startButton: 'Inizia Ora',
+    },
+    // Errors
+    errors: {
+        aiInit: "Errore durante l'inizializzazione di GoogleGenAI. Controlla la console per i dettagli.",
+        apiKeyNotFound: "API key non trovata. Le funzionalità AI non saranno disponibili. Assicurati che la variabile d'ambiente API_KEY sia impostata correttamente nell'ambiente in cui esegui l'applicazione.",
+    },
+    // Settings
+    settings: {
+      title: 'Impostazioni',
+      description: 'Personalizza la tua esperienza con UniTutorAI.',
+      appearance: 'Aspetto',
+      lightTheme: 'Tema Chiaro',
+      lightThemeDescription: 'Attiva per una visualizzazione con sfondo chiaro.',
+      language: 'Lingua',
+      languageDescription: "Seleziona la lingua dell'interfaccia e del Tutor AI.",
+      italian: 'Italiano',
+      english: 'Inglese',
+      appLogic: "Logica dell'app",
+      pointerVisibility: 'Visibilità dei Pointers',
+      pointerVisibilityDescription: "Scegli quali argomenti (pointers) mostrare nelle sezioni Esercitazioni e Simulazioni.",
+      tackledPointersOnly: 'Solo argomenti affrontati',
+      allPointers: 'Tutti gli argomenti',
+    },
+    // Exercises View
+    exercises: {
+      description: 'Mettiti alla prova con esercizi mirati sugli argomenti specifici delle tue dispense.',
+      noTopics: 'Nessun pointer (micro-argomento) trovato. Carica una dispensa per iniziare.',
+      noUnlockedTopics: 'Non hai ancora sbloccato nessun pointer. Studia alcune pagine delle tue dispense per iniziare le esercitazioni.',
+      noTopicsForFilter: "Nessun argomento corrisponde al filtro di visibilità. Prova a modificare le impostazioni o a studiare più pagine.",
+      creatingExercise: 'Il Tutor AI sta creando il tuo esercizio...',
+      pleaseWait: 'Un attimo di pazienza.',
+      backToTopics: 'Torna agli argomenti',
+      exercisePrompt: 'Traccia Esercizio',
+      askTutor: 'Chiedi al Tutor AI',
+      officialSolution: 'Soluzione Ufficiale',
+      aiCorrection: 'Correzione del Tutor AI',
+      yourSolution: 'La Tua Soluzione',
+      saved: 'Salvato!',
+      saveProgress: 'Salva Progresso',
+      correcting: 'Correzione...',
+      submitForCorrection: 'Consegna per Correzione',
+      great: 'Ottimo!',
+      tutorHelpTitle: 'Aiuto dal Tutor AI',
+      askSpecificQuestion: 'Fai una domanda specifica...',
+      tutorThinking: 'Il tutor sta pensando...',
+      errorOccurred: 'Si è verificato un errore:',
+      deleteConfirm: 'Sei sicuro di voler eliminare il pointer "{title}"? Verranno eliminate anche tutte le esercitazioni associate.',
+      unlocked: 'Affrontato',
+      locked: 'Non Affrontato',
+      createButton: 'Crea Nuovo Esercizio',
+      difficulty: {
+        easy: 'Facile',
+        medium: 'Medio',
+        hard: 'Difficile'
+      },
+      type: {
+        theory: 'Domanda di Teoria',
+        exercise: 'Esercizio Pratico'
+      }
+    },
+    simulations: {
+      errors: {
+        noTopicsForFilter: "Nessun argomento trovato per le dispense selezionate in base al filtro di visibilità. Prova a completare lo studio di più pagine o a modificare l'impostazione in \"Tutti i Pointers\" nelle Impostazioni."
+      }
+    },
+    versionOneWelcome: {
+      title: 'Benvenuto in UniTutorAI 1.0!',
+      intro: "Questa è la prima versione stabile, un'evoluzione della demo iniziale (UniTutorAIdemo).",
+      improvementsTitle: "Cosa c'è di nuovo:",
+      bugFixes: "Miglioramenti generali della stabilità e risoluzione di numerosi bug per un'esperienza più fluida e affidabile.",
+      button: 'Fantastico!',
+    },
+  },
+  en: {
+    // Common terms
+    common: {
+      cancel: 'Cancel',
+      delete: 'Delete',
+      save: 'Save',
+      edit: 'Edit',
+      saveChanges: 'Save Changes',
+    },
+    // Sidebar
+    sidebar: {
+      dashboard: 'Dashboard',
+      calendario: 'Calendar',
+      details: 'Subject Details',
+      dispense: 'Subject Materials',
+      appunti: 'Notes',
+      esercitazioni: 'Exercises',
+      chat: 'Tutor Lesson',
+      lessonDiary: 'Lesson Diary',
+      simulations: 'Exam Simulations',
+      impostazioni: 'Settings',
+      databaseApp: 'Subject Database',
+      selectedSubject: 'Selected Subject',
+    },
+     // Dispense View
+    dispense: {
+      description: 'Upload and manage your PDFs. The AI will analyze them to create custom exercises and lessons for you.',
+      uploadButton: 'Upload New Material',
+      savedTitle: 'Saved Materials',
+      searchPlaceholder: 'Search by name or topic...',
+      sortLabel: 'Sort materials',
+      sort: {
+        recent: 'Most recent',
+        oldest: 'Oldest',
+        name_asc: 'Name (A-Z)',
+        name_desc: 'Name (Z-A)',
+        completion_desc: 'Completion (High > Low)',
+        completion_asc: 'Completion (Low > High)',
+        comprehension_desc: 'Comprehension (High > Low)',
+        comprehension_asc: 'Comprehension (Low > High)',
+      },
+      filterByTopic: 'Filter by topic',
+      removeFilters: 'Remove filters',
+      noDispense: 'No materials saved for this subject. Click above to upload one!',
+      noMatch: 'No materials match the search filters.',
+    },
+    // Details View
+    details: {
+      welcome: 'Welcome to UniTutorAI',
+      studying: 'You are studying',
+      summary: 'Subject Summary',
+      edit: 'Edit Data',
+      cfu: 'CFU',
+      simulations: 'Simulations',
+      avgGrade: 'Average Grade',
+      professors: 'Professors',
+      noProfessor: 'No professor data entered.',
+      profName: 'Name',
+      profEmail: 'Email',
+      profOffice: 'Office Hours',
+      schedule: 'Lesson Schedule',
+      period: 'Period',
+      notSet: 'Not set',
+      noSchedule: 'No schedule set.',
+      classroom: 'Classroom',
+      prof: 'Professor',
+      examDates: "Upcoming Exam Dates",
+      nextExamIn: 'Next exam in:',
+      noExamDates: "No exam dates set.",
+      footer: "Select an option from the sidebar to explore other features.",
+      loading: 'Loading...',
+      notFound: "Subject details not found.",
+    },
+    // Welcome Modal
+     welcome: {
+        title: 'Welcome to UniTutorAI!',
+        description: 'This is your new intelligent study platform. UniTutorAI will help you organize materials, generate custom exercises, and prepare for exams in the best way possible.',
+        howToStart: '🚀 How to start:',
+        step1: 'Go to the Dashboard.',
+        step2: 'Click the "Manage Subjects" button.',
+        step3: 'Add your first subject to unlock all features!',
+        startButton: 'Get Started',
+    },
+    // Errors
+    errors: {
+        aiInit: 'Error during GoogleGenAI initialization. Check the console for details.',
+        apiKeyNotFound: 'API key not found. AI features will be unavailable. Make sure the API_KEY environment variable is set correctly in the environment where you run the application.',
+    },
+    // Settings
+    settings: {
+      title: 'Settings',
+      description: 'Customize your UniTutorAI experience.',
+      appearance: 'Appearance',
+      lightTheme: 'Light Theme',
+      lightThemeDescription: 'Enable for a light background view.',
+      language: 'Language',
+      languageDescription: 'Select the language for the interface and the AI Tutor.',
+      italian: 'Italian',
+      english: 'English',
+      appLogic: 'App Logic',
+      pointerVisibility: 'Pointers Visibility',
+      pointerVisibilityDescription: 'Choose which topics (pointers) to show in the Exercises and Simulations sections.',
+      tackledPointersOnly: 'Tackled topics only',
+      allPointers: 'All topics',
+    },
+    // Exercises View
+    exercises: {
+      description: 'Test your knowledge with targeted exercises on specific topics from your materials.',
+      noTopics: 'No pointers (micro-topics) found. Upload a material to get started.',
+      noUnlockedTopics: "You haven't unlocked any pointers yet. Study some pages of your materials to start the exercises.",
+      noTopicsForFilter: "No topics match the visibility filter. Try changing the settings or studying more pages.",
+      creatingExercise: 'The AI Tutor is creating your exercise...',
+      pleaseWait: 'Just a moment.',
+      backToTopics: 'Back to topics',
+      exercisePrompt: 'Exercise Prompt',
+      askTutor: 'Ask the AI Tutor',
+      officialSolution: 'Official Solution',
+      aiCorrection: 'AI Correction',
+      yourSolution: 'Your Solution',
+      saved: 'Saved!',
+      saveProgress: 'Save Progress',
+      correcting: 'Correcting...',
+      submitForCorrection: 'Submit for Correction',
+      great: 'Great!',
+      tutorHelpTitle: 'AI Tutor Help',
+      askSpecificQuestion: 'Ask a specific question...',
+      tutorThinking: 'The tutor is thinking...',
+      errorOccurred: 'An error occurred:',
+      deleteConfirm: 'Are you sure you want to delete the pointer "{title}"? All associated exercises will also be deleted.',
+      unlocked: 'Tackled',
+      locked: 'Not Tackled',
+      createButton: 'Create New Exercise',
+      difficulty: {
+        easy: 'Easy',
+        medium: 'Medium',
+        hard: 'Hard'
+      },
+      type: {
+        theory: 'Theory Question',
+        exercise: 'Practical Exercise'
+      }
+    },
+     simulations: {
+      errors: {
+        noTopicsForFilter: "No topics found for the selected materials based on the visibility filter. Try completing more pages or changing the setting to \"All Pointers\" in Settings."
+      }
+    },
+    versionOneWelcome: {
+      title: 'Welcome to UniTutorAI 1.0!',
+      intro: "This is the first version, an evolution of the initial demo (UniTutorAIdemo).",
+      improvementsTitle: "What's new:",
+      bugFixes: "General stability improvements and resolution of numerous bugs for a smoother and more reliable experience.",
+      button: 'Awesome!',
+    },
+  }
+};
