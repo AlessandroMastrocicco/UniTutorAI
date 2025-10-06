@@ -1,0 +1,49 @@
+{
+  "name": "unitutorai",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Un'applicazione web per visualizzare PDF, interagire con un tutor AI e gestire materiale di studio per l'università.",
+  "main": "main.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "electron:start": "electron .",
+    "package": "vite build && electron-builder"
+  },
+  "dependencies": {
+    "@google/genai": "^1.21.0",
+    "dexie": "^4.2.0",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "@vitejs/plugin-react": "^4.3.1",
+    "electron": "^31.0.2",
+    "electron-builder": "^24.13.3",
+    "vite": "^5.3.1"
+  },
+  "build": {
+    "appId": "com.unitutorai.app",
+    "productName": "UniTutorAI",
+    "files": [
+      "dist/**/*",
+      "main.js",
+      "preload.js"
+    ],
+    "directories": {
+      "output": "release"
+    },
+    "win": {
+      "target": "nsis"
+    },
+    "mac": {
+      "target": "dmg",
+      "identity": null
+    },
+    "linux": {
+      "target": "AppImage"
+    }
+  }
+}
