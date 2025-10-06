@@ -66,6 +66,8 @@ export interface ProfessorDetails {
 }
 
 export interface ExamStructure {
+    hasWritten: boolean;
+    hasOral: boolean;
     mcTheory: number;
     openTheory: number;
     mcExercise: number;
@@ -116,10 +118,18 @@ export interface SavedDispensa {
     comprehensionScore?: number | null;
 }
 
+export interface SearchResult {
+  dispensaId: string;
+  dispensaName: string;
+  pageNumber: number;
+  content: string;
+}
+
 export interface ChatMessage {
     id:string;
     role: 'user' | 'model';
     text: string;
+    searchResults?: SearchResult[];
 }
 
 export interface LessonStep {
@@ -163,10 +173,15 @@ export interface SavedSimulation {
     dispensaNames: string[];
     date: string; // ISO string
     questions: SimulationQuestion[];
-    score: number; // Points scored
-    totalPoints: number;
-    grade: number; // Grade out of 30
-    duration: number; // Duration in minutes
+    score: number; // Points scored for the written part
+    totalPoints: number; // Total points for the written part
+    grade: number; // Grade out of 30 for the written part
+    duration: number; // Duration in minutes for the written part
+    examType: 'written' | 'oral' | 'written_oral';
+    status: 'taking' | 'completed' | 'oral_pending';
+    oralTranscript?: ChatMessage[];
+    oralEvaluation?: string;
+    finalGrade?: number;
 }
 
 

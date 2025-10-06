@@ -647,7 +647,7 @@ const App: React.FC = () => {
                 if (numSimulations > 0) {
                     const gradedSimulations = subjectSimulations.filter(sim => sim.grade != null);
                     if (gradedSimulations.length > 0) {
-                        const totalGradePoints = gradedSimulations.reduce((acc, sim) => acc + sim.grade, 0);
+                        const totalGradePoints = gradedSimulations.reduce((acc, sim) => acc + (sim.finalGrade ?? sim.grade), 0);
                         avgGradeStr = `${(totalGradePoints / gradedSimulations.length).toFixed(1)} / 30`;
                     }
                 }
@@ -1591,6 +1591,8 @@ ${topicsContentForAI}`;
             
             const selectedDispense = dispense.filter(d => dispensaIds.includes(d.id));
             const totalPoints = generatedQuestions.reduce((sum, q) => sum + (q.points || 0), 0);
+            
+            const examType = structure.hasWritten && structure.hasOral ? 'written_oral' : (structure.hasWritten ? 'written' : 'oral');
 
             const newSimulation: SavedSimulation = {
                 id: Date.now().toString(),
@@ -1602,6 +1604,8 @@ ${topicsContentForAI}`;
                 totalPoints: totalPoints,
                 grade: 0,
                 duration: structure.timer,
+                examType: examType,
+                status: 'taking',
             };
     
             updateNotification(notificationId, { message: 'Simulazione generata!', type: 'success', duration: 4000 });

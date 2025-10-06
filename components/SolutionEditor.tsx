@@ -109,7 +109,8 @@ export const SolutionEditor: React.FC<{
             
             editorRef.current.innerHTML = tempDiv.innerHTML;
         }
-    }, [initialContent]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     // OCR on pasted images
     useEffect(() => {

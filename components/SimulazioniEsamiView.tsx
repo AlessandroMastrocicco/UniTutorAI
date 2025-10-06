@@ -54,6 +54,8 @@ export const SimulazioniEsamiView: React.FC<SimulazioniEsamiViewProps> = ({ sele
     
     const [selectedDispenseIds, setSelectedDispenseIds] = useState<string[]>([]);
     const [examStructure, setExamStructure] = useState<ExamStructure>({
+        hasWritten: true,
+        hasOral: false,
         mcTheory: 2,
         openTheory: 1,
         mcExercise: 1,
@@ -274,7 +276,10 @@ export const SimulazioniEsamiView: React.FC<SimulazioniEsamiViewProps> = ({ sele
             }, { mcTheory: 0, openTheory: 0, mcExercise: 0, openExercise: 0, timer: 0 });
 
             const count = pastExams.length;
+            // FIX: Add missing `hasWritten` and `hasOral` properties to the `ExamStructure` object.
             finalStructure = {
+                hasWritten: true,
+                hasOral: false,
                 mcTheory: Math.round(total.mcTheory / count) || 0,
                 openTheory: Math.round(total.openTheory / count) || 0,
                 mcExercise: Math.round(total.mcExercise / count) || 0,
@@ -283,7 +288,8 @@ export const SimulazioniEsamiView: React.FC<SimulazioniEsamiViewProps> = ({ sele
             };
         } else {
             // Fallback to default structure if no past exams
-            finalStructure = { mcTheory: 2, openTheory: 1, mcExercise: 1, openExercise: 0, timer: 30 };
+            // FIX: Add missing `hasWritten` and `hasOral` properties to the `ExamStructure` object.
+            finalStructure = { hasWritten: true, hasOral: false, mcTheory: 2, openTheory: 1, mcExercise: 1, openExercise: 0, timer: 30 };
         }
 
         // 2. Determine dispensaIds

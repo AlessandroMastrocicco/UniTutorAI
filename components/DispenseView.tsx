@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import type { PDFDocumentProxy, SavedDispensa, Thumbnail, ChatMessage, PDFPageProxy, Appunto } from '../types';
+import type { PDFDocumentProxy, SavedDispensa, Thumbnail, ChatMessage, PDFPageProxy, Appunto, ContentVector, SearchResult } from '../types';
 import { db, type DbThumbnail, type DbDispensa } from '../db';
 import { AppuntiView } from './AppuntiView';
 
@@ -19,6 +19,37 @@ const SendIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-
 const SortIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor"><path d="M5 12a1 1 0 102 0V6.414l1.293 1.293a1 1 0 001.414-1.414l-3-3a1 1 0 00-1.414 0l-3 3a1 1 0 001.414 1.414L5 6.414V12zM15 8a1 1 0 10-2 0v5.586l-1.293-1.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l3 3a1 1 0 00-1.414-1.414L15 13.586V8z" /></svg>;
 const PencilIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" /><path fillRule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clipRule="evenodd" /></svg>;
 const AppuntiIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>;
+
+
+interface AugmentedContentVector extends ContentVector {
+  dispensaId: string;
+  dispensaName: string;
+}
+
+// Text search utility for RAG
+const findRelevantVectors = (query: string, allVectors: AugmentedContentVector[], topK: number = 3): AugmentedContentVector[] => {
+    if (!query || allVectors.length === 0) {
+        return [];
+    }
+    
+    const italianStopWords = new Set(['a', 'ad', 'al', 'allo', 'ai', 'agli', 'alla', 'alle', 'con', 'col', 'coi', 'da', 'dal', 'dallo', 'dai', 'dagli', 'dalla', 'dalle', 'di', 'del', 'dello', 'dei', 'degli', 'della', 'delle', 'in', 'nel', 'nello', 'nei', 'negli', 'nella', 'nelle', 'su', 'sul', 'sullo', 'sui', 'sugli', 'sulla', 'sulle', 'per', 'tra', 'fra', 'e', 'o', 'ma', 'se', 'che', 'il', 'lo', 'i', 'gli', 'la', 'le', 'un', 'uno', 'una', 'ed', 'si', 'non', 'di', 'cosa', 'chi', 'dove', 'quando', 'perché', 'come']);
+    const queryWords = query.toLowerCase().split(/\s+/).filter(word => !italianStopWords.has(word) && word.length > 2);
+
+    const scoredVectors = allVectors.map(vector => {
+        const vectorWords = new Set(vector.content.toLowerCase().split(/\s+/));
+        let score = 0;
+        for (const word of queryWords) {
+            if (vectorWords.has(word)) {
+                score++;
+            }
+        }
+        return { vector, score };
+    });
+
+    scoredVectors.sort((a, b) => b.score - a.score);
+
+    return scoredVectors.slice(0, topK).filter(item => item.score > 0).map(item => item.vector);
+};
 
 
 interface DispenseViewProps {
@@ -464,6 +495,7 @@ export const DispenseView: React.FC<DispenseViewProps> = ({ subjectName, dataVer
     const [isChatOpen, setIsChatOpen] = useState(false);
     const [chatInput, setChatInput] = useState('');
     const [viewerChatHistory, setViewerChatHistory] = useState<ChatMessage[]>([]);
+    const [isSearching, setIsSearching] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     
     // Local state for dispense and thumbnails
@@ -613,37 +645,103 @@ export const DispenseView: React.FC<DispenseViewProps> = ({ subjectName, dataVer
 
         loadViewData();
     }, [subjectName, dataVersion]);
+    
+    const handleGoToSearchResult = (result: SearchResult) => {
+        const dispensaToOpen = dispense.find(d => d.id === result.dispensaId);
+        if (dispensaToOpen) {
+            // If we are already viewing this dispensa, just change the page
+            if (viewingDispensa?.id === result.dispensaId) {
+                const pagesForViewer = allThumbnails[result.dispensaId] || [];
+                const pageIndex = pagesForViewer.findIndex(p => p.pageNumber === result.pageNumber);
+                if (pageIndex !== -1) {
+                    setCurrentViewerPage(pageIndex + 1);
+                }
+            } else {
+                // Otherwise, open the new dispensa viewer
+                openViewer(dispensaToOpen, result.pageNumber);
+            }
+        }
+    };
 
     const handleSendViewerChatMessage = async () => {
-        if (!chatInput.trim() || isProcessing || !viewingDispensa) return;
+        if (!chatInput.trim() || isProcessing || isSearching || !viewingDispensa) return;
 
         const message = chatInput.trim();
         const userMessage: ChatMessage = { id: Date.now().toString(), role: 'user', text: message };
         setViewerChatHistory(prev => [...prev, userMessage]);
         setChatInput('');
 
-        const currentPageData = viewingDispensa.pages[currentViewerPage - 1];
-        if (!currentPageData) {
-            const errorMessage: ChatMessage = { id: (Date.now() + 1).toString(), role: 'model', text: 'Errore: non riesco a determinare la pagina corrente.' };
-            setViewerChatHistory(prev => [...prev, errorMessage]);
-            return;
-        }
-        const currentPageNumber = currentPageData.pageNumber;
+        const searchKeywords = ['cerca', 'trova', 'parla di', 'argomento', 'pagina', 'find', 'search for', 'look for', 'topic', 'page that talks about'];
+        const isSearchQuery = searchKeywords.some(keyword => message.toLowerCase().includes(keyword));
 
-        const pageVectors = viewingDispensa.contentVectors?.filter(v => v.pageNumber === currentPageNumber) || [];
-        
-        const content = pageVectors.map(v => v.content).join('\n\n');
-        
-        let contextForAI = '';
-        if (!content.trim()) {
-            contextForAI = `Nessun contenuto testuale trovato per la pagina ${currentPageNumber}. Rispondi in modo generico, ma informa l'utente che non hai contesto specifico dalla pagina.`;
-        } else {
-            contextForAI = `Contesto (Pagina ${currentPageNumber}):\n${content}`;
+        if (isSearchQuery) {
+            setIsSearching(true);
+            try {
+                const allSubjectDispense = await db.dispense.where({ subjectName }).toArray();
+                const allVectors: AugmentedContentVector[] = allSubjectDispense.flatMap(d =>
+                    (d.contentVectors || []).map(v => ({
+                        ...v,
+                        dispensaId: d.id,
+                        dispensaName: d.name,
+                    }))
+                );
+
+                if (allVectors.length === 0) {
+                    const noContentMessage: ChatMessage = { id: (Date.now() + 1).toString(), role: 'model', text: "Nessun materiale di studio trovato per questa materia su cui cercare." };
+                    setViewerChatHistory(prev => [...prev, noContentMessage]);
+                    return;
+                }
+                
+                const relevantVectors = findRelevantVectors(message, allVectors, 3);
+
+                if (relevantVectors.length === 0) {
+                    const noResultsMessage: ChatMessage = { id: (Date.now() + 1).toString(), role: 'model', text: "Non ho trovato risultati pertinenti per la tua ricerca. Prova a riformulare la domanda." };
+                    setViewerChatHistory(prev => [...prev, noResultsMessage]);
+                } else {
+                    const searchResultsMessage: ChatMessage = {
+                        id: (Date.now() + 1).toString(),
+                        role: 'model',
+                        text: `Ho trovato questi risultati per la tua ricerca:`,
+                        searchResults: relevantVectors.map(v => ({
+                            dispensaId: v.dispensaId,
+                            dispensaName: v.dispensaName,
+                            pageNumber: v.pageNumber,
+                            content: v.content,
+                        }))
+                    };
+                    setViewerChatHistory(prev => [...prev, searchResultsMessage]);
+                }
+            } catch (e) {
+                const errorMessage = e instanceof Error ? e.message : String(e);
+                const errorChatMessage: ChatMessage = { id: (Date.now() + 1).toString(), role: 'model', text: `Si è verificato un errore durante la ricerca: ${errorMessage}` };
+                setViewerChatHistory(prev => [...prev, errorChatMessage]);
+            } finally {
+                setIsSearching(false);
+            }
+        } else { // Original logic
+            const currentPageData = viewingDispensa.pages[currentViewerPage - 1];
+            if (!currentPageData) {
+                const errorMessage: ChatMessage = { id: (Date.now() + 1).toString(), role: 'model', text: 'Errore: non riesco a determinare la pagina corrente.' };
+                setViewerChatHistory(prev => [...prev, errorMessage]);
+                return;
+            }
+            const currentPageNumber = currentPageData.pageNumber;
+
+            const pageVectors = viewingDispensa.contentVectors?.filter(v => v.pageNumber === currentPageNumber) || [];
+            
+            const content = pageVectors.map(v => v.content).join('\n\n');
+            
+            let contextForAI = '';
+            if (!content.trim()) {
+                contextForAI = `Nessun contenuto testuale trovato per la pagina ${currentPageNumber}. Rispondi in modo generico, ma informa l'utente che non hai contesto specifico dalla pagina.`;
+            } else {
+                contextForAI = `Contesto (Pagina ${currentPageNumber}):\n${content}`;
+            }
+            
+            const responseText = await onAskTutorQuestion(message, `Materia: "${subjectName}". ${contextForAI}`);
+            const modelMessage: ChatMessage = { id: (Date.now() + 1).toString(), role: 'model', text: responseText };
+            setViewerChatHistory(prev => [...prev, modelMessage]);
         }
-        
-        const responseText = await onAskTutorQuestion(message, `Materia: "${subjectName}". ${contextForAI}`);
-        const modelMessage: ChatMessage = { id: (Date.now() + 1).toString(), role: 'model', text: responseText };
-        setViewerChatHistory(prev => [...prev, modelMessage]);
     };
 
 
@@ -791,12 +889,12 @@ export const DispenseView: React.FC<DispenseViewProps> = ({ subjectName, dataVer
                 setTextData(allTextData);
                 handleSelectAll(pdf.numPages);
             } catch (err) {
-                if (err instanceof Error) {
+                 // FIX: Argument of type 'unknown' is not assignable to parameter of type 'string'.
+                 if (err instanceof Error) {
                     setError(`Errore nel caricamento del PDF: ${err.message}`);
-                } else {
-                    // FIX: Explicitly cast unknown error to string before using it in a template literal.
+                 } else {
                     setError(`Errore sconosciuto nel caricamento del PDF: ${String(err)}`);
-                }
+                 }
             } finally {
                 setIsLoading(false);
                 setOcrProgress(null);
@@ -877,27 +975,33 @@ export const DispenseView: React.FC<DispenseViewProps> = ({ subjectName, dataVer
         }
     };
     
-    const openViewer = (dispensaToView: SavedDispensa) => {
+    const openViewer = (dispensaToView: SavedDispensa, initialPageNumber?: number) => {
         const pagesForViewer = allThumbnails[dispensaToView.id] || [];
-        // find the actual dispensa object from state to get the most up-to-date studiedPages
         const currentDispensaState = dispense.find(d => d.id === dispensaToView.id) || dispensaToView;
         
-        const studiedPageNumbers = Array.from(parsePageRanges(currentDispensaState.studiedPages || '', currentDispensaState.totalPages));
         let pageIndex = 0;
-
-        if (studiedPageNumbers.length > 0) {
-            const lastStudiedPage = Math.max(...studiedPageNumbers);
-            const foundIndex = pagesForViewer.findIndex(p => p.pageNumber === lastStudiedPage);
+        
+        if (initialPageNumber) {
+            const foundIndex = pagesForViewer.findIndex(p => p.pageNumber === initialPageNumber);
             if (foundIndex !== -1) {
-                pageIndex = Math.min(foundIndex + 1, pagesForViewer.length - 1);
+                pageIndex = foundIndex;
+            }
+        } else {
+            const studiedPageNumbers = Array.from(parsePageRanges(currentDispensaState.studiedPages || '', currentDispensaState.totalPages));
+            if (studiedPageNumbers.length > 0) {
+                const lastStudiedPage = Math.max(...studiedPageNumbers);
+                const foundIndex = pagesForViewer.findIndex(p => p.pageNumber === lastStudiedPage);
+                if (foundIndex !== -1) {
+                    pageIndex = Math.min(foundIndex + 1, pagesForViewer.length - 1);
+                }
             }
         }
 
         setViewerZoomLevel(1.5);
         setCurrentViewerPage(pageIndex >= 0 ? pageIndex + 1 : 1);
         setViewingDispensa({ ...currentDispensaState, pages: pagesForViewer });
-        setIsChatOpen(false);
         setIsNotesSplitViewOpen(false);
+        setIsChatOpen(false);
         setViewerChatHistory([]);
     };
 
@@ -1148,7 +1252,7 @@ export const DispenseView: React.FC<DispenseViewProps> = ({ subjectName, dataVer
                                             <div className="flex flex-col items-center justify-center h-full text-center text-gray-400">
                                                 <SparkleIcon />
                                                 <p className="mt-2">Sono il tuo tutor per {subjectName}.</p>
-                                                <p className="text-sm">Fammi una domanda su questa pagina.</p>
+                                                <p className="text-sm">Fammi una domanda sulla pagina corrente, o chiedimi di cercare un argomento in tutte le dispense.</p>
                                             </div>
                                         )}
                                         {viewerChatHistory.map(msg => (
@@ -1156,10 +1260,26 @@ export const DispenseView: React.FC<DispenseViewProps> = ({ subjectName, dataVer
                                                 {msg.role === 'model' && <div className="bg-indigo-600 rounded-full h-8 w-8 flex items-center justify-center flex-shrink-0 text-lg" role="img">🤖</div>}
                                                 <div className={`rounded-lg p-3 max-w-lg ${msg.role === 'user' ? 'bg-indigo-700' : 'bg-gray-700'}`}>
                                                     <p className="text-sm text-gray-200 whitespace-pre-wrap">{msg.text}</p>
+                                                    {msg.searchResults && (
+                                                        <div className="mt-3 pt-3 border-t border-gray-600 space-y-2">
+                                                            {msg.searchResults.map((result, index) => (
+                                                                <div key={index} className="bg-gray-800 p-2 rounded-md">
+                                                                    <p className="text-xs font-bold text-indigo-400">{result.dispensaName} - Pag. {result.pageNumber}</p>
+                                                                    <p className="text-xs text-gray-400 italic my-1 line-clamp-2">"{result.content}"</p>
+                                                                    <button 
+                                                                        onClick={() => handleGoToSearchResult(result)}
+                                                                        className="text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 rounded px-2 py-1"
+                                                                    >
+                                                                        Vedi pagina
+                                                                    </button>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    )}
                                                 </div>
                                             </div>
                                         ))}
-                                        {isProcessing && (
+                                        {(isProcessing || isSearching) && (
                                             <div className="flex items-start gap-3 my-4">
                                                 <div className="bg-indigo-600 rounded-full h-8 w-8 flex items-center justify-center flex-shrink-0 text-lg" role="img">🤖</div>
                                                 <div className="bg-gray-700 rounded-lg p-3 max-w-md flex items-center">
@@ -1172,8 +1292,8 @@ export const DispenseView: React.FC<DispenseViewProps> = ({ subjectName, dataVer
                                     </div>
                                     <div className="p-4 bg-gray-900/50 border-t border-gray-700">
                                         <div className="flex items-center bg-gray-700 rounded-lg">
-                                            <input type="text" placeholder="Chiedi qualcosa su questa pagina..." value={chatInput} onChange={e => setChatInput(e.target.value)} onKeyPress={e => e.key === 'Enter' && handleSendViewerChatMessage()} className="flex-1 bg-transparent p-3 text-white placeholder-gray-400 focus:outline-none" disabled={isProcessing} />
-                                            <button onClick={handleSendViewerChatMessage} className="p-3 text-white transition-colors disabled:text-gray-500" disabled={isProcessing || !chatInput.trim()}><SendIcon /></button>
+                                            <input type="text" placeholder="Chiedi qualcosa o cerca un argomento..." value={chatInput} onChange={e => setChatInput(e.target.value)} onKeyPress={e => e.key === 'Enter' && handleSendViewerChatMessage()} className="flex-1 bg-transparent p-3 text-white placeholder-gray-400 focus:outline-none" disabled={isProcessing || isSearching} />
+                                            <button onClick={handleSendViewerChatMessage} className="p-3 text-white transition-colors disabled:text-gray-500" disabled={isProcessing || isSearching || !chatInput.trim()}><SendIcon /></button>
                                         </div>
                                     </div>
                                 </div>
