@@ -1,0 +1,5 @@
+{
+  "name": "UniTutorAI",
+  "description": "Un'applicazione web per visualizzare PDF, interagire con un tutor AI e gestire materiale di studio per l'università.",
+  "requestFramePermissions": []
+}
