@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="it">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>UniTutorAI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- PDF.js library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js"></script>
+    <!-- Tesseract.js library for OCR -->
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+    
+    <!-- KaTeX for LaTeX rendering -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" integrity="sha384-n8MVd4RsNIU0tAv4ct0nTaAbDJwPJzDEaqSD1odI+WdtXRGWt2kTvGFasHpSy3SV" crossorigin="anonymous">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" integrity="sha384-XjKyOOlGwcjNTAIQHIpgOno0Hl1YQqzUOEleOLALmuqehneUG+vnGctmUb0ZY0l8" crossorigin="anonymous"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" integrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05" crossorigin="anonymous" onload="renderMathInElement(document.body, { delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}], throwOnError: false });"></script>
+
+    <style>
+      @import url('https://rsms.me/inter/inter.css');
+      body {
+        font-family: 'Inter', sans-serif;
+      }
+
+      /* KaTeX display mode overflow fix */
+      .katex-display {
+        overflow-x: auto;
+        overflow-y: hidden;
+        padding-bottom: 0.2em; /* Add some padding for scrollbar */
+      }
+      
+      /* Light Theme Overrides */
+      body.light {
+        background-color: #f3f4f6; /* gray-100 */
+        color: #1f2937; /* gray-800 */
+      }
+      
+      /* Backgrounds */
+      body.light .bg-gray-900 { background-color: #f9fafb !important; }
+      body.light .bg-gray-800 { background-color: #ffffff !important; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1); }
+      body.light .bg-gray-700 { background-color: #e5e7eb !important; }
+      body.light .bg-gray-600 { background-color: #d1d5db !important; }
+      body.light .bg-gray-900\/50 { background-color: rgba(249, 250, 251, 0.8) !important; }
+      body.light .bg-gray-800\/50 { background-color: rgba(255, 255, 255, 0.8) !important; }
+      body.light .bg-gray-700\/50 { background-color: rgba(229, 231, 235, 0.5) !important; }
+
+      /* Text */
+      body.light .text-white,
+      body.light .text-gray-200,
+      body.light .text-gray-300 {
+        color: #1f2937 !important; /* gray-800 */
+      }
+      body.light .text-gray-400 { color: #6b7280 !important; } /* gray-500 */
+      body.light .text-gray-500 { color: #9ca3af !important; } /* gray-400 */
+
+      /* Borders */
+      body.light .border-gray-700 { border-color: #e5e7eb !important; } /* gray-200 */
+      body.light .border-gray-600 { border-color: #d1d5db !important; } /* gray-300 */
+
+      /* Sidebar */
+      body.light aside { border-right: 1px solid #e5e7eb; }
+      body.light aside .text-gray-300 { color: #4b5563 !important; } /* gray-600 */
+      body.light aside button:not(.bg-indigo-600):hover { background-color: #f3f4f6 !important; }
+      body.light aside button:disabled:hover { background-color: transparent !important; }
+      body.light aside .bg-indigo-600, body.light aside .bg-indigo-600 span, body.light aside .bg-indigo-600 svg { color: #ffffff !important; }
+
+      /* Inputs and Buttons */
+      body.light input,
+      body.light select,
+      body.light textarea {
+        background-color: #f9fafb !important;
+        border-color: #d1d5db !important;
+        color: #111827 !important;
+      }
+      body.light input::placeholder,
+      body.light textarea::placeholder { color: #9ca3af !important; }
+      body.light .bg-gray-600:hover { background-color: #9ca3af !important; }
+      body.light .bg-gray-700:hover { background-color: #d1d5db !important; }
+
+      /* Special Colors (for semantic meaning) */
+      body.light .text-indigo-300 { color: #6366f1 !important; }
+      body.light .text-indigo-400 { color: #4f46e5 !important; }
+      body.light .bg-indigo-900\/50 { background-color: #eef2ff !important; }
+      body.light .bg-indigo-700 { background-color: #4338ca !important; }
+      body.light .bg-indigo-900 { background-color: #eef2ff !important; }
+      body.light .text-green-200 { color: #166534 !important; }
+      body.light .text-green-300 { color: #16a34a !important; }
+      body.light .bg-green-900\/50 { background-color: #f0fdf4 !important; }
+      body.light .text-yellow-200 { color: #a16207 !important; }
+      body.light .text-yellow-300 { color: #ca8a04 !important; }
+      body.light .text-yellow-400 { color: #eab308 !important; }
+      body.light .bg-yellow-900\/50 { background-color: #fefce8 !important; }
+      body.light .text-red-200 { color: #991b1b !important; }
+      body.light .text-red-300 { color: #b91c1c !important; }
+      body.light .text-red-400 { color: #ef4444 !important; }
+      body.light .bg-red-900\/50 { background-color: #fee2e2 !important; }
+      body.light .bg-red-900 { background-color: #fee2e2 !important; }
+      
+      /* Switch */
+      body.light .bg-gray-600.peer-checked\:bg-indigo-600 { background-color: #d1d5db !important; }
+
+    </style>
+<script type="importmap">
+{
+  "imports": {
+    "react": "https://aistudiocdn.com/react@^19.1.1",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.1.1/",
+    "react/": "https://aistudiocdn.com/react@^19.1.1/",
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.21.0",
+    "dexie": "https://aistudiocdn.com/dexie@^4.2.0",
+    "vite": "https://aistudiocdn.com/vite@^7.1.7",
+    "@vitejs/plugin-react": "https://aistudiocdn.com/@vitejs/plugin-react@^5.0.4"
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
+</head>
+  <body class="bg-gray-900 text-white">
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
+  </body>
+</html>
